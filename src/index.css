@@ -262,3 +262,15 @@ cursor: pointer; }
     font-size: clamp(18px, 8vw, 34px);
   }
 }
+
+.ifjisd {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: white;
+  font-size: 12px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  text-align: right;
+  z-index: 1000;
+}

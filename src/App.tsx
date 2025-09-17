@@ -93,7 +93,7 @@ function App() {
 />
 </FadeContent>
 </div>
-  
+  <h1 className='ifjisd'>Made by Piyush Dhumal</h1>
 </>
   )
 }
