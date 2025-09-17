@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { JSX } from 'react';
+import type { JSX, ReactNode, FocusEventHandler } from 'react';
 import './PixelCard.css';
 
 class Pixel {
@@ -156,7 +156,7 @@ interface PixelCardProps {
   colors?: string;
   noFocus?: boolean;
   className?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 interface VariantConfig {
@@ -256,11 +256,11 @@ export default function PixelCard({
 
   const onMouseEnter = () => handleAnimation('appear');
   const onMouseLeave = () => handleAnimation('disappear');
-  const onFocus: React.FocusEventHandler<HTMLDivElement> = e => {
+  const onFocus: FocusEventHandler<HTMLDivElement> = e => {
     if (e.currentTarget.contains(e.relatedTarget)) return;
     handleAnimation('appear');
   };
-  const onBlur: React.FocusEventHandler<HTMLDivElement> = e => {
+  const onBlur: FocusEventHandler<HTMLDivElement> = e => {
     if (e.currentTarget.contains(e.relatedTarget)) return;
     handleAnimation('disappear');
   };

@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import type { CSSProperties } from 'react';
+import { useRef, useEffect } from 'react';
+import type { CSSProperties, FC } from 'react';
 import './Waves.css';
 
 class Grad {
@@ -135,7 +135,7 @@ interface WavesProps {
   className?: string;
 }
 
-const Waves: React.FC<WavesProps> = ({
+const Waves: FC<WavesProps> = ({
   lineColor = 'black',
   backgroundColor = 'transparent',
   waveSpeedX = 0.0125,

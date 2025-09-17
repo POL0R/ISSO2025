@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, FC } from 'react';
 
 interface FadeContentProps {
   children: ReactNode;
@@ -12,7 +12,7 @@ interface FadeContentProps {
   className?: string;
 }
 
-const FadeContent: React.FC<FadeContentProps> = ({
+const FadeContent: FC<FadeContentProps> = ({
   children,
   blur = false,
   duration = 1000,

@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMatchById, fetchTeams, setBasketballScore, canEditMatch, finalizeMatch, updateMatchStatus } from '../api'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { fetchMatchById, fetchTeams, finalizeMatch, updateMatchStatus } from '../api'
 import { useAuth } from '../context/AuthContext'
 import Goals from '../components/Goals'
 
@@ -13,23 +13,7 @@ export default function MatchPage() {
   const sportSlugGuess = 'football-u19'
   const { data: teams } = useQuery({ queryKey: ['teams', sportSlugGuess], queryFn: () => fetchTeams(sportSlugGuess), enabled: !!sportSlugGuess })
 
-  const canEditMutation = useMutation({
-    mutationFn: async () => canEditMatch(id)
-  })
-
-  const mSetBasketball = useMutation({
-    mutationFn: async ({ home, away }: { home: number; away: number }) => setBasketballScore(id, home, away),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['match', id] })
-  })
-
-  const mFinalize = useMutation({
-    mutationFn: async () => finalizeMatch(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['match', id] })
-      alert('Match marked Final')
-      location.reload()
-    }
-  })
+  
 
   // status note removed
 

@@ -1,20 +1,21 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMatches, fetchTeams } from '../api'
+import type { Match, Team } from '../types'
 
 export default function Standings({ sport }: { sport: string }) {
-  const { data: teams } = useQuery({ queryKey: ['teams', sport], queryFn: () => fetchTeams(sport) })
-  const { data: matches } = useQuery({ queryKey: ['matches', sport], queryFn: () => fetchMatches(sport) })
+  const { data: teams } = useQuery<Team[]>({ queryKey: ['teams', sport], queryFn: () => fetchTeams(sport) })
+  const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', sport], queryFn: () => fetchMatches(sport) })
 
-  const groups = useMemo(() => {
+  const groups = useMemo((): Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> => {
     // Group by m.stage (fallback "Group A" if absent)
-    const byGroup = new Map<string, typeof rows>()
+    const byGroup = new Map<string, Map<string, { team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }>>()
     for (const m of matches ?? []) {
       if (String(m.status).toLowerCase() !== 'final') continue
       const key = ((m as any).stage as string | undefined) || 'Group'
-      let rows = byGroup.get(key)
-      if (!rows) { rows = new Map(); byGroup.set(key, rows) }
-      const ensure = (id: string) => rows!.get(id) || rows!.set(id, { team_id: id, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, pts: 0 }).get(id)!
+      let rowsMap = byGroup.get(key)
+      if (!rowsMap) { rowsMap = new Map(); byGroup.set(key, rowsMap) }
+      const ensure = (id: string) => rowsMap!.get(id) || rowsMap!.set(id, { team_id: id, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, pts: 0 }).get(id)!
       const h = ensure(m.home_team_id)
       const a = ensure(m.away_team_id)
       h.played++; a.played++
@@ -27,7 +28,8 @@ export default function Standings({ sport }: { sport: string }) {
     // Convert to sorted arrays per group
     const out: Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> = []
     for (const [group, map] of byGroup.entries()) {
-      out.push({ group, rows: Array.from(map.values()).sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf) })
+      const arr = Array.from(map.values()) as Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }>
+      out.push({ group, rows: arr.sort((x, y) => (y.pts - x.pts) || (y.gd - x.gd) || (y.gf - x.gf)) })
     }
     return out.sort((a, b) => a.group.localeCompare(b.group))
   }, [matches])
