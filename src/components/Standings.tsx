@@ -28,7 +28,7 @@ export default function Standings({ sport }: { sport: string }) {
     // Convert to sorted arrays per group
     const out: Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> = []
     for (const [group, map] of byGroup.entries()) {
-      const arr = Array.from(map.values()) as Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }>
+      const arr = Array.from(map.values())
       out.push({ group, rows: arr.sort((x, y) => (y.pts - x.pts) || (y.gd - x.gd) || (y.gf - x.gf)) })
     }
     return out.sort((a, b) => a.group.localeCompare(b.group))
