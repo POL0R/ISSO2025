@@ -1,0 +1,105 @@
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: auto;
+  animation: overlay-fade 800ms ease-out 2600ms forwards;
+}
+
+.splash-stage {
+  position: relative;
+  width: min(80vw, 720px);
+  height: min(60vh, 540px);
+}
+
+.claw {
+  position: absolute;
+  top: 50%;
+  width: min(42vw, 420px);
+  transform: translateY(-50%);
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.15));
+}
+
+.claw-right {
+  right: 6%;
+  transform: translateY(-50%);
+  clip-path: inset(0 100% 0 0);
+  animation: claw-reveal-right 700ms ease-out forwards 0ms;
+}
+
+.claw-left {
+  left: 6%;
+  transform: translateY(-50%) scaleX(-1);
+  clip-path: inset(0 0 0 100%);
+  animation: claw-reveal-left 700ms ease-out forwards 450ms;
+}
+
+@keyframes claw-reveal-right {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    transform: translateY(-50%) translateX(12%) rotate(2deg);
+    opacity: 0.2;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(-50%) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  110% { opacity: 0 }
+}
+
+@keyframes claw-reveal-left {
+  0% {
+    clip-path: inset(0 0 0 100%);
+    transform: translateY(-50%) scaleX(-1) translateX(-12%) rotate(-2deg);
+    opacity: 0.2;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translateY(-50%) scaleX(-1) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  110% { opacity: 0 }
+}
+
+.arya-logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(70vw, 620px);
+  transform: translate(-50%, -50%) scale(0.9);
+  opacity: 0;
+  animation: logo-reveal 900ms ease-out 1000ms forwards,
+             logo-zoom 800ms ease-in 2300ms forwards;
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.2));
+}
+
+@keyframes logo-reveal {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  60% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  
+}
+
+@keyframes logo-zoom {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(305); opacity: 1; }
+}
+
+@keyframes overlay-fade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+

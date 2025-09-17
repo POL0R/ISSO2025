@@ -1,0 +1,39 @@
+.bottom-switcher {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 4000;
+}
+
+.bottom-pill {
+  display: flex;
+  gap: 6px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid #e0e0e0;
+  border-radius: 999px;
+  padding: 6px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.bottom-pill button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #0a0a0a;
+  cursor: pointer;
+}
+
+.bottom-pill button.active {
+  background: #0a0a0a;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .bottom-pill { gap: 4px; }
+  .bottom-pill button { padding: 8px 10px; }
+}
+
+
