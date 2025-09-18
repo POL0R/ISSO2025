@@ -8,39 +8,59 @@ export default function Standings({ sport }: { sport: string }) {
   const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', sport], queryFn: () => fetchMatches(sport) })
 
   const groups = useMemo((): Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> => {
-    // Group by m.stage (fallback "Group A" if absent)
-    const byGroup = new Map<string, Map<string, { team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }>>()
-    
-    // First, ensure all teams are in groups (even if they haven't played)
+    // First, collect all unique groups from matches
+    const groupSet = new Set<string>()
+    const teamToGroup = new Map<string, string>()
     const allTeamIds = new Set<string>()
+    
+    // Process all matches to determine groups and teams
     for (const m of matches ?? []) {
       allTeamIds.add(m.home_team_id)
       allTeamIds.add(m.away_team_id)
+      
+      const groupKey = ((m as any).stage as string | undefined) || 'Group A'
+      groupSet.add(groupKey)
+      teamToGroup.set(m.home_team_id, groupKey)
+      teamToGroup.set(m.away_team_id, groupKey)
     }
     
-    // Process matches
+    // If no groups found in matches, create default groups
+    if (groupSet.size === 0) {
+      const teamArray = Array.from(allTeamIds)
+      const teamsPerGroup = Math.ceil(teamArray.length / 4) // Distribute into 4 groups
+      
+      teamArray.forEach((teamId, index) => {
+        const groupIndex = Math.floor(index / teamsPerGroup)
+        const groupKey = `Group ${String.fromCharCode(65 + groupIndex)}` // A, B, C, D
+        teamToGroup.set(teamId, groupKey)
+        groupSet.add(groupKey)
+      })
+    }
+    
+    // Initialize group maps
+    const byGroup = new Map<string, Map<string, { team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }>>()
+    for (const group of groupSet) {
+      byGroup.set(group, new Map())
+    }
+    
+    // Add all teams to their respective groups
+    for (const teamId of allTeamIds) {
+      const groupKey = teamToGroup.get(teamId) || 'Group A'
+      const rowsMap = byGroup.get(groupKey)!
+      rowsMap.set(teamId, { team_id: teamId, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, pts: 0 })
+    }
+    
+    // Process completed matches
     for (const m of matches ?? []) {
-      // Only process completed matches
       const status = String(m.status).toLowerCase()
       const statusNote = String((m as any).status_note || '').toLowerCase()
       if (!status.includes('final') && !statusNote.includes('final')) continue
       
-      const groupKey = ((m as any).stage as string | undefined) || 'Group A'
-      let rowsMap = byGroup.get(groupKey)
-      if (!rowsMap) { 
-        rowsMap = new Map()
-        byGroup.set(groupKey, rowsMap)
-      }
+      const groupKey = teamToGroup.get(m.home_team_id) || 'Group A'
+      const rowsMap = byGroup.get(groupKey)!
       
-      const ensure = (id: string) => {
-        if (!rowsMap!.has(id)) {
-          rowsMap!.set(id, { team_id: id, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, pts: 0 })
-        }
-        return rowsMap!.get(id)!
-      }
-      
-      const h = ensure(m.home_team_id)
-      const a = ensure(m.away_team_id)
+      const h = rowsMap.get(m.home_team_id)!
+      const a = rowsMap.get(m.away_team_id)!
       
       // Update match statistics
       h.played++
@@ -68,24 +88,6 @@ export default function Standings({ sport }: { sport: string }) {
         a.drawn++
         h.pts++
         a.pts++
-      }
-    }
-    
-    // Add teams that haven't played any matches yet
-    for (const teamId of allTeamIds) {
-      let addedToGroup = false
-      for (const [groupKey, rowsMap] of byGroup.entries()) {
-        if (!rowsMap.has(teamId)) {
-          rowsMap.set(teamId, { team_id: teamId, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, pts: 0 })
-          addedToGroup = true
-          break
-        }
-      }
-      // If team wasn't added to any group, add to Group A
-      if (!addedToGroup) {
-        const defaultGroup = byGroup.get('Group A') || new Map()
-        defaultGroup.set(teamId, { team_id: teamId, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, pts: 0 })
-        byGroup.set('Group A', defaultGroup)
       }
     }
     
