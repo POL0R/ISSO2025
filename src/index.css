@@ -48,7 +48,7 @@ html, body, #root {
   z-index: 20;
   overflow-y: auto; /* Allow vertical scrolling for cards */
   overflow-x: hidden; /* Prevent horizontal scrolling */
-  padding: 0 16px; /* Add some padding for better mobile experience */
+  padding: 20px 16px; /* Add top padding to prevent clipping */
 }
 
 .foreas {
@@ -263,6 +263,7 @@ cursor: pointer; }
     max-height: calc(100vh - 12svh);
     overflow-y: auto;
     overflow-x: hidden;
+    padding: 20px 16px; /* Add top padding to prevent clipping */
   }
 
   .textContainerCircluar {
@@ -314,7 +315,7 @@ cursor: pointer; }
     max-height: calc(100vh - 10svh);
     overflow-y: auto; /* Allow vertical scrolling for cards */
     overflow-x: hidden; /* Prevent horizontal scrolling */
-    padding: 0 12px; /* Reduce padding on smaller screens */
+    padding: 20px 12px; /* Add top padding to prevent clipping */
   }
 
   .textContainerCircluar {
