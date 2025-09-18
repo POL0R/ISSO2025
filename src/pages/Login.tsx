@@ -21,19 +21,7 @@ export default function Login() {
     }
   }
 
-  const sendMagicLink = async () => {
-    try {
-      setLoading(true)
-      setMessage('')
-      const { error } = await supabase.auth.signInWithOtp({ email })
-      if (error) throw error
-      setMessage('Magic link sent. Check your email.')
-    } catch (e: any) {
-      setMessage(e.message || 'Failed to send magic link')
-    } finally {
-      setLoading(false)
-    }
-  }
+ 
 
   return (
     <div style={{ color: '#000', background: '#fff', marginTop: '12svh', padding: 16 }}>
@@ -42,7 +30,7 @@ export default function Login() {
         <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
         <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
         <button disabled={loading} onClick={signInEmailPassword}>Sign in</button>
-        <button disabled={loading} onClick={sendMagicLink}>Send magic link</button>
+
         {message && <div style={{ color: '#d00' }}>{message}</div>}
       </div>
     </div>

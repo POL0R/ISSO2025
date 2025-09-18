@@ -141,7 +141,20 @@ export default function Standings({ sport }: { sport: string }) {
   const teamName = (id: string) => teams?.find(t => t.id === id)?.name ?? id
 
   return (
-    <div style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 12, padding: 16, color: '#fff' }}>
+    <div 
+      className="standings-container"
+      style={{ 
+        background: 'transparent', 
+        border: '1px solid rgba(255,255,255,0.22)', 
+        borderRadius: 12, 
+        padding: 16, 
+        color: '#fff',
+        maxHeight: '70vh',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(255,255,255,0.3) transparent'
+      }}>
       <h3 style={{ marginTop: 0, color: '#fff', marginBottom: 16, fontSize: '1.2em' }}>Group Stage Standings</h3>
       {(groups ?? []).map((g, groupIndex) => (
         <div key={g.group} style={{ marginTop: groupIndex > 0 ? 24 : 0 }}>
