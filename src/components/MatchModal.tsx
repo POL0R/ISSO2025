@@ -49,7 +49,7 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
               <div className="sectionTitle">Match Details</div>
               <div className="divider"></div>
               <dl className="kv">
-                <dt>Kickoff</dt>
+                <dt>{String(match.sport_id).includes('basketball') ? 'Tip-off' : 'Kickoff'}</dt>
                 <dd>{new Date(match.starts_at).toLocaleString()}</dd>
                 <dt>Venue</dt>
                 <dd>{match.venue || 'TBD'}</dd>
@@ -57,42 +57,113 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                 <dd>{match.status_note || match.status}</dd>
               </dl>
               <div className="divider"></div>
-              <div className="sectionTitle">Goals</div>
-              <Goals matchId={id} teamIds={{ home: match.home_team_id, away: match.away_team_id }} teamNames={{ home: homeName, away: awayName }} />
+              {String(match.sport_id).includes('basketball') ? (
+                <>
+                  <div className="sectionTitle">Score</div>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    gap: '20px', 
+                    fontSize: '24px', 
+                    fontWeight: 'bold',
+                    margin: '20px 0'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '14px', opacity: 0.7, marginBottom: '4px' }}>{homeName}</div>
+                      <div>{match.home_score}</div>
+                    </div>
+                    <div style={{ fontSize: '18px', opacity: 0.7 }}>:</div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '14px', opacity: 0.7, marginBottom: '4px' }}>{awayName}</div>
+                      <div>{match.away_score}</div>
+                    </div>
+                  </div>
+                  {role === 'admin' && (
+                    <>
+                      <div className="divider"></div>
+                      <div className="sectionTitle">Update Score</div>
+                      <form
+                        onSubmit={e => {
+                          e.preventDefault()
+                          const form = e.currentTarget as HTMLFormElement
+                          const homeScore = Number((form.elements.namedItem('home') as HTMLInputElement).value)
+                          const awayScore = Number((form.elements.namedItem('away') as HTMLInputElement).value)
+                          const topScorer = (form.elements.namedItem('top') as HTMLInputElement).value
+                          
+                          if (topScorer.trim()) {
+                            updateMatchStatus(match.id, `Started | Top: ${topScorer}`).then(() => qc.invalidateQueries({ queryKey: ['match', id] }))
+                          }
+                          
+                          ;(async () => { 
+                            await (await import('../api')).setBasketballScore(match.id, homeScore, awayScore)
+                            qc.invalidateQueries({ queryKey: ['match', id] })
+                            alert('Score updated successfully!')
+                          })()
+                        }}
+                        style={{ display: 'grid', gap: 12, marginTop: 16 }}
+                      >
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                            <label style={{ fontSize: '12px', opacity: 0.7 }}>{homeName}</label>
+                            <input 
+                              name="home" 
+                              defaultValue={match.home_score} 
+                              type="number" 
+                              min={0} 
+                              className="input" 
+                              style={{ width: 80, textAlign: 'center' }} 
+                            />
+                          </div>
+                          <span style={{ fontSize: '18px', fontWeight: 'bold' }}>:</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                            <label style={{ fontSize: '12px', opacity: 0.7 }}>{awayName}</label>
+                            <input 
+                              name="away" 
+                              defaultValue={match.away_score} 
+                              type="number" 
+                              min={0} 
+                              className="input" 
+                              style={{ width: 80, textAlign: 'center' }} 
+                            />
+                          </div>
+                        </div>
+                        <input 
+                          name="top" 
+                          placeholder="Highest scorer (optional)" 
+                          className="input" 
+                          style={{ textAlign: 'center' }}
+                        />
+                        <button className="btn" type="submit" style={{ marginTop: 8 }}>
+                          Update Score
+                        </button>
+                      </form>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="sectionTitle">Goals</div>
+                  <Goals matchId={id} teamIds={{ home: match.home_team_id, away: match.away_team_id }} teamNames={{ home: homeName, away: awayName }} />
+                </>
+              )}
             </div>
           )}
           {tab === 'admin' && role === 'admin' && (
             <>
               {String(match.sport_id).includes('basketball') ? (
                 <div className="section">
-                  <div className="sectionTitle">Basketball Controls</div>
+                  <div className="sectionTitle">Basketball Match Controls</div>
                   <div className="divider"></div>
-                  <form
-                    onSubmit={e => {
-                      e.preventDefault()
-                      const form = e.currentTarget as HTMLFormElement
-                      const homeScore = Number((form.elements.namedItem('home') as HTMLInputElement).value)
-                      const awayScore = Number((form.elements.namedItem('away') as HTMLInputElement).value)
-                      const topScorer = (form.elements.namedItem('top') as HTMLInputElement).value
-                      // pack top scorer into status_note after a pipe (viewer-safe)
-                      updateMatchStatus(match.id, `Started | Top: ${topScorer}`).then(() => qc.invalidateQueries({ queryKey: ['match', id] }))
-                      // save score
-                      ;(async () => { await (await import('../api')).setBasketballScore(match.id, homeScore, awayScore); alert('Basketball score saved'); location.reload() })()
-                    }}
-                    style={{ display: 'grid', gap: 8 }}
-                  >
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <input name="home" defaultValue={match.home_score} type="number" min={0} className="input" style={{ width: 80 }} />
-                      <span>:</span>
-                      <input name="away" defaultValue={match.away_score} type="number" min={0} className="input" style={{ width: 80 }} />
-                    </div>
-                    <input name="top" placeholder="Highest scorer (name)" className="input" />
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button className="btn" type="submit">Save & Mark Started</button>
-                      <button className="btn" type="button" onClick={() => updateMatchStatus(match.id, 'Upcoming').then(() => { alert('Status set to Upcoming'); location.reload() })}>Upcoming</button>
-                      <button className="btn" type="button" onClick={() => updateMatchStatus(match.id, 'Ended').then(() => { alert('Status set to Ended'); location.reload() })}>End</button>
-                    </div>
-                  </form>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button className="btn" onClick={() => updateMatchStatus(match.id, 'Upcoming').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Upcoming'); })}>Upcoming</button>
+                    <button className="btn" onClick={() => updateMatchStatus(match.id, 'Started').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Started'); })}>Start Match</button>
+                    <button className="btn" onClick={() => updateMatchStatus(match.id, 'Ended').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Ended'); })}>End Match</button>
+                    <button className="btn" onClick={async () => { const { finalizeMatch } = await import('../api'); await finalizeMatch(match.id); qc.invalidateQueries({ queryKey: ['match', id] }); alert('Match marked Final'); }}>Mark Final</button>
+                  </div>
+                  <div style={{ marginTop: 16, padding: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 8, fontSize: '14px', opacity: 0.8 }}>
+                    💡 <strong>Tip:</strong> Use the "Match Info" tab to update scores and add the highest scorer.
+                  </div>
                 </div>
               ) : (
                 <div className="section">
