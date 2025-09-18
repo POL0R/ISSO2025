@@ -107,10 +107,10 @@ export default function MatchPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-            <button className="btn" onClick={() => updateMatchStatus(match.id, 'First Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to First Half'); location.reload() })}>Start 1st Half</button>
-            <button className="btn" onClick={() => updateMatchStatus(match.id, 'Halftime').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Halftime'); location.reload() })}>Halftime</button>
-            <button className="btn" onClick={() => updateMatchStatus(match.id, 'Second Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Second Half'); location.reload() })}>Start 2nd Half</button>
-            <button className="btn" onClick={() => finalizeMatch(match.id).then(() => qc.invalidateQueries({ queryKey: ['match', id] }))}>Finished</button>
+            <button className="btn" onClick={() => updateMatchStatus(match.id, 'First Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to First Half'); })}>Start 1st Half</button>
+            <button className="btn" onClick={() => updateMatchStatus(match.id, 'Halftime').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Halftime'); })}>Halftime</button>
+            <button className="btn" onClick={() => updateMatchStatus(match.id, 'Second Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Second Half'); })}>Start 2nd Half</button>
+            <button className="btn" onClick={() => finalizeMatch(match.id).then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Match marked Final'); })}>Finished</button>
           </div>
         )
       )}

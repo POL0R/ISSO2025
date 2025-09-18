@@ -33,12 +33,30 @@ export default function MatchList({ sport, teamFilter = '', dateFilter = '', sel
     return byTeam && byDate && bySelectedTeam
   })
 
+  // Sort by status priority: live (first/second half) -> halftime -> finished -> upcoming
+  const getStatusRank = (m: Match) => {
+    const note = (m as any).status_note as string | undefined
+    const s = (note ? note.split('|')[0] : m.status || '').toLowerCase().trim()
+    if (s.includes('first') || s.includes('second') || s.includes('live') || s.includes('start')) return 0
+    if (s.includes('half') && !s.includes('first') && !s.includes('second')) return 1
+    if (s.includes('end') || s.includes('final') || s.includes('finished') || s.includes('full')) return 2
+    return 3
+  }
+
+  const sorted = filtered.slice().sort((a, b) => {
+    const ra = getStatusRank(a)
+    const rb = getStatusRank(b)
+    if (ra !== rb) return ra - rb
+    // tie-breaker by start time ascending
+    return new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+  })
+
   // Pagination (5 per page)
   const pageSize = 5
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize))
   const safePage = Math.min(page, totalPages)
   const startIdx = (safePage - 1) * pageSize
-  const visible = filtered.slice(startIdx, startIdx + pageSize)
+  const visible = sorted.slice(startIdx, startIdx + pageSize)
 
   // Reset to first page on filter/sport change
   useEffect(() => { setPage(1) }, [sport, teamFilter, dateFilter, selectedTeamId])

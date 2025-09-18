@@ -2,19 +2,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { addFootballGoal, fetchGoals, fetchTeamPlayers, addTeamPlayer } from '../api'
 import { useAuth } from '../context/AuthContext'
 
-export default function Goals({ matchId, teamIds, teamNames }: { matchId: string; teamIds: { home: string; away: string }; teamNames: { home: string; away: string } }) {
+export default function Goals({ matchId, teamIds, teamNames, allowAdminEdits }: { matchId: string; teamIds: { home: string; away: string }; teamNames: { home: string; away: string }; allowAdminEdits?: boolean }) {
   const qc = useQueryClient()
   const { role } = useAuth()
   const { data: goals } = useQuery({ queryKey: ['goals', matchId], queryFn: () => fetchGoals(matchId) })
   const { data: homePlayers } = useQuery({ queryKey: ['players', teamIds.home], queryFn: () => fetchTeamPlayers(teamIds.home) })
   const { data: awayPlayers } = useQuery({ queryKey: ['players', teamIds.away], queryFn: () => fetchTeamPlayers(teamIds.away) })
 
+  const canEdit = (allowAdminEdits ?? (role === 'admin')) === true
+
   const mAdd = useMutation({
     mutationFn: async (payload: { teamId: string; playerName: string; minute: number; ownGoal?: boolean }) => addFootballGoal({ matchId, ...payload }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['goals', matchId] })
+      qc.invalidateQueries({ queryKey: ['match', matchId] })
       alert('Goal added')
-      location.reload()
     }
   })
 
@@ -24,13 +26,12 @@ export default function Goals({ matchId, teamIds, teamNames }: { matchId: string
       qc.invalidateQueries({ queryKey: ['players', teamIds.home] })
       qc.invalidateQueries({ queryKey: ['players', teamIds.away] })
       alert('Player added')
-      location.reload()
     }
   })
 
   return (
     <div style={{ marginTop: 16 }}>
-      <h3>Goals</h3>
+      <h1 style={{fontSize: '20px', marginBottom: '10px'}}>Goals</h1>
       <div style={{ display: 'grid', gap: 0, border: '1px solid rgba(255,255,255,0.18)', borderRadius: 10, overflow: 'hidden' }}>
         {(goals ?? []).map((g, idx) => (
           <div
@@ -45,21 +46,25 @@ export default function Goals({ matchId, teamIds, teamNames }: { matchId: string
             }}
           >
             <div style={{ opacity: 0.85 }}>{g.minute}'</div>
-            <div style={{ fontWeight: 600 }}>{g.player_name} {g.own_goal ? '(OG)' : ''}</div>
+            <div style={{ fontWeight: 600 }}>
+              {g.player_name} <span style={{ opacity: 0.7, fontWeight: 400 }}>({g.team_id === teamIds.home ? teamNames.home : g.team_id === teamIds.away ? teamNames.away : 'Unknown'})</span> {g.own_goal ? '(OG)' : ''}
+            </div>
           </div>
         ))}
       </div>
-      {role === 'admin' && (
+      {canEdit && (
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           <div>
             <h4 style={{ margin: '8px 0' }}>{teamNames.home} - Players</h4>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div style={{ display: 'grid', gap: 6, maxHeight: 260, overflowY: 'auto', paddingRight: 8 }}>
               {(homePlayers ?? []).map(p => (
                 <form
                   key={p.id}
                   onSubmit={e => {
                     e.preventDefault()
-                    const minute = Number((e.currentTarget.elements.namedItem('minute') as HTMLInputElement).value)
+                    const minuteRaw = (e.currentTarget.elements.namedItem('minute') as HTMLInputElement).value.trim()
+                    if (minuteRaw === '' || Number.isNaN(Number(minuteRaw))) { alert('Please enter minute'); return }
+                    const minute = Number(minuteRaw)
                     mAdd.mutate({ playerName: p.name, minute, teamId: teamIds.home, ownGoal: false })
                   }}
                   style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}
@@ -74,8 +79,13 @@ export default function Goals({ matchId, teamIds, teamNames }: { matchId: string
               <form
                 onSubmit={e => {
                   e.preventDefault()
-                  const name = (e.currentTarget.elements.namedItem('name') as HTMLInputElement).value
-                  const jersey = Number((e.currentTarget.elements.namedItem('jersey') as HTMLInputElement).value)
+                  const name = (e.currentTarget.elements.namedItem('name') as HTMLInputElement).value.trim()
+                  const jerseyRaw = (e.currentTarget.elements.namedItem('jersey') as HTMLInputElement).value.trim()
+                  if (!name) { alert('Enter player name'); return }
+                  if (jerseyRaw === '' || Number.isNaN(Number(jerseyRaw))) { alert('Enter jersey number'); return }
+                  const jersey = Number(jerseyRaw)
+                  const dup = (homePlayers ?? []).some(pl => pl.jersey_number === jersey || pl.name.trim().toLowerCase() === name.toLowerCase())
+                  if (dup) { alert('Player with same name or jersey already exists in Home team'); return }
                   mAddPlayer.mutate({ teamId: teamIds.home, name, jerseyNumber: jersey })
                   e.currentTarget.reset()
                 }}
@@ -89,13 +99,15 @@ export default function Goals({ matchId, teamIds, teamNames }: { matchId: string
           </div>
           <div>
             <h4 style={{ margin: '8px 0' }}>{teamNames.away} - Players</h4>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div style={{ display: 'grid', gap: 6, maxHeight: 260, overflowY: 'auto', paddingRight: 8 }}>
               {(awayPlayers ?? []).map(p => (
                 <form
                   key={p.id}
                   onSubmit={e => {
                     e.preventDefault()
-                    const minute = Number((e.currentTarget.elements.namedItem('minute') as HTMLInputElement).value)
+                    const minuteRaw = (e.currentTarget.elements.namedItem('minute') as HTMLInputElement).value.trim()
+                    if (minuteRaw === '' || Number.isNaN(Number(minuteRaw))) { alert('Please enter minute'); return }
+                    const minute = Number(minuteRaw)
                     mAdd.mutate({ playerName: p.name, minute, teamId: teamIds.away, ownGoal: false })
                   }}
                   style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}
@@ -110,8 +122,13 @@ export default function Goals({ matchId, teamIds, teamNames }: { matchId: string
               <form
                 onSubmit={e => {
                   e.preventDefault()
-                  const name = (e.currentTarget.elements.namedItem('name') as HTMLInputElement).value
-                  const jersey = Number((e.currentTarget.elements.namedItem('jersey') as HTMLInputElement).value)
+                  const name = (e.currentTarget.elements.namedItem('name') as HTMLInputElement).value.trim()
+                  const jerseyRaw = (e.currentTarget.elements.namedItem('jersey') as HTMLInputElement).value.trim()
+                  if (!name) { alert('Enter player name'); return }
+                  if (jerseyRaw === '' || Number.isNaN(Number(jerseyRaw))) { alert('Enter jersey number'); return }
+                  const jersey = Number(jerseyRaw)
+                  const dup = (awayPlayers ?? []).some(pl => pl.jersey_number === jersey || pl.name.trim().toLowerCase() === name.toLowerCase())
+                  if (dup) { alert('Player with same name or jersey already exists in Away team'); return }
                   mAddPlayer.mutate({ teamId: teamIds.away, name, jerseyNumber: jersey })
                   e.currentTarget.reset()
                 }}
@@ -131,8 +148,14 @@ export default function Goals({ matchId, teamIds, teamNames }: { matchId: string
                 e.preventDefault()
                 const form = e.currentTarget as HTMLFormElement
                 const team = (form.elements.namedItem('team') as HTMLSelectElement).value
-                const name = (form.elements.namedItem('name') as HTMLInputElement).value
-                const jersey = Number((form.elements.namedItem('jersey') as HTMLInputElement).value)
+                const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim()
+                const jerseyRaw = (form.elements.namedItem('jersey') as HTMLInputElement).value.trim()
+                if (!name) { alert('Enter player name'); return }
+                if (jerseyRaw === '' || Number.isNaN(Number(jerseyRaw))) { alert('Enter jersey number'); return }
+                const jersey = Number(jerseyRaw)
+                const list = team === teamIds.home ? (homePlayers ?? []) : (awayPlayers ?? [])
+                const dup = list.some(pl => pl.jersey_number === jersey || pl.name.trim().toLowerCase() === name.toLowerCase())
+                if (dup) { alert('Player with same name or jersey already exists in selected team'); return }
                 mAddPlayer.mutate({ teamId: team, name, jerseyNumber: jersey })
                 form.reset()
               }}

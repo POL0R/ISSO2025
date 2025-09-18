@@ -29,19 +29,18 @@ html, body, #root {
 
 .playedSafe {
   display: flex;
+  margin-top:5vh;
   width: 100%;
   justify-content: center;
   align-items: flex-start;
   gap: 5vw;
   z-index: 20;
-  position: fixed;
-  top: 16vh;
+  position: relative;
+  top: 10vh;
   left: 0;
   right: 0;
   bottom: 0;
-  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: 4vh;
 }
 
 .foreas {
@@ -55,7 +54,7 @@ html, body, #root {
   justify-content: center;
   align-items: end;
   width: 100%;
-  z-index: 0;
+
   pointer-events: none;
 }
 
@@ -236,9 +235,8 @@ cursor: pointer; }
 
 @media (max-width: 1024px) {
   .playedSafe {
-    top: 14svh;
+    top: calc(var(--app-header-h, 96px) + 8px + env(safe-area-inset-top));
     gap: 4vw;
-    padding-top: 2vh;
   }
 }
 
@@ -252,8 +250,7 @@ cursor: pointer; }
     flex-direction: column;
     align-items: center;
     gap: 6svh;
-    top: 12svh;
-    padding-top: 2vh;
+    top: calc(var(--app-header-h, 88px) + 8px + env(safe-area-inset-top));
   }
 
   .textContainerCircluar {
@@ -307,9 +304,8 @@ cursor: pointer; }
   }
 
   .playedSafe {
-    top: 10svh;
+    top: calc(var(--app-header-h, 80px) + 8px + env(safe-area-inset-top));
     gap: 5svh;
-    padding-top: 20vh;
     
   }
 

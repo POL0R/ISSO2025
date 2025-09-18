@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchMatchById, fetchTeamsBySportId, updateMatchStatus, fetchSportById } from '../api'
 import Goals from './Goals'
+import FootballGoalsSummary from './FootballGoalsSummary'
 import { useAuth } from '../context/AuthContext'
 import './MatchModal.css'
 
@@ -166,8 +167,16 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                 </>
               ) : (
                 <>
-                  <div className="sectionTitle">Goals</div>
-                  <Goals matchId={id} teamIds={{ home: match.home_team_id, away: match.away_team_id }} teamNames={{ home: homeName, away: awayName }} />
+                  <div style={{ marginTop: 8 }}>
+                    <FootballGoalsSummary matchId={id} teamIds={{ home: match.home_team_id, away: match.away_team_id }} teamNames={{ home: homeName, away: awayName }} />
+                  </div>
+                  <div className="divider" style={{ margin: '12px 0' }}></div>
+                  <Goals
+                    matchId={id}
+                    teamIds={{ home: match.home_team_id, away: match.away_team_id }}
+                    teamNames={{ home: homeName, away: awayName }}
+                    allowAdminEdits={role === 'admin'}
+                  />
                 </>
               )}
             </div>
@@ -181,7 +190,6 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button className="btn" onClick={() => updateMatchStatus(match.id, 'Upcoming').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Upcoming'); })}>Upcoming</button>
                     <button className="btn" onClick={() => updateMatchStatus(match.id, 'Started').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Started'); })}>Start Match</button>
-                    <button className="btn" onClick={() => updateMatchStatus(match.id, 'Ended').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Ended'); })}>End Match</button>
                     <button className="btn" onClick={async () => { const { finalizeMatch } = await import('../api'); await finalizeMatch(match.id); qc.invalidateQueries({ queryKey: ['match', id] }); alert('Match marked Final'); }}>Mark Final</button>
                   </div>
                   <div style={{ marginTop: 16, padding: 12, background: 'rgba(255,255,255,0.05)', borderRadius: 8, fontSize: '14px', opacity: 0.8 }}>
@@ -193,10 +201,10 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                   <div className="sectionTitle">Football Controls</div>
                   <div className="divider"></div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button className="btn" onClick={() => updateMatchStatus(match.id, 'First Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to First Half'); location.reload() })}>Start 1st Half</button>
-                  <button className="btn" onClick={() => updateMatchStatus(match.id, 'Halftime').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Halftime'); location.reload() })}>Halftime</button>
-                  <button className="btn" onClick={() => updateMatchStatus(match.id, 'Second Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Second Half'); location.reload() })}>Start 2nd Half</button>
-                  <button className="btn" onClick={async () => { const { finalizeMatch } = await import('../api'); await finalizeMatch(match.id); alert('Match marked Final'); location.reload() }}>Finish</button>
+                  <button className="btn" onClick={() => updateMatchStatus(match.id, 'First Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to First Half'); })}>Start 1st Half</button>
+                  <button className="btn" onClick={() => updateMatchStatus(match.id, 'Halftime').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Halftime'); })}>Halftime</button>
+                  <button className="btn" onClick={() => updateMatchStatus(match.id, 'Second Half').then(() => { qc.invalidateQueries({ queryKey: ['match', id] }); alert('Status set to Second Half'); })}>Start 2nd Half</button>
+                  <button className="btn" onClick={async () => { const { finalizeMatch } = await import('../api'); await finalizeMatch(match.id); qc.invalidateQueries({ queryKey: ['match', id] }); alert('Match marked Final'); }}>Finish</button>
                   </div>
                 </div>
               )}

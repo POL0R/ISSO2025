@@ -34,13 +34,28 @@ export default function Scoreboard() {
     return map;
   }, [teams]);
 
+  // auto-select today's date if it matches one of the chips
+  (function initDateOnce() {
+    if (!dateFilter) {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      const iso = `${y}-${m}-${d}`;
+      const match = dateChips.find(dc => dc.iso === iso);
+      if (match) setDateFilter(match.iso);
+    }
+  })();
+
+  const isBasketball = String(sport).toLowerCase().includes('basketball');
+
   return (
     
     <div className="pageDark" >
       <div style={{ width: '100%', height: '100%', position: 'fixed', zIndex:-1 }}>
       
 <Waves
-  lineColor="rgba(255, 255, 255, 0.07)"
+  lineColor="rgba(255, 255, 255, 0.13)"
   backgroundColor="rgba(38, 37, 37, 0.03)"
   waveSpeedX={0.05}
   waveSpeedY={0.01}
@@ -85,12 +100,12 @@ export default function Scoreboard() {
         {!isLoading && (
           <>
             {tab === 'matches' && <MatchList sport={sport} teamFilter={teamFilter} dateFilter={dateFilter} selectedTeamId={selectedTeamId} />}
-            {tab === 'scorers' && <TopScorers sport={sport} />}
+            {tab === 'scorers' && !isBasketball && <TopScorers sport={sport} />}
             {tab === 'standings' && <Standings sport={sport} />}
           </>
         )}
       </div>
-      <BottomSwitcher tab={tab} onChange={setTab} />
+      <BottomSwitcher tab={tab} onChange={setTab} showScorers={!isBasketball} />
     </div>
   );
 }

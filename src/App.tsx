@@ -25,7 +25,7 @@ function App() {
         clawSrc="/clawMark.png"
       />
     )}
-    <div className='topNameHolderAndAll'>
+    <div className='topNameHolderAndAll' id='appHeader'>
       <img className='jpisPef' src="/jpisMain.png" alt="JPIS ISSO 2025" />
       <h1>JPIS ISSO 2025</h1>
       <img className='issoperfec' src="/isso.png" alt="JPIS ISSO 2025" />
@@ -39,7 +39,7 @@ function App() {
 />
 </div>
 
-<div className='playedSafe' id='cards' style={{ paddingTop: '4vh' }}>
+<div className='playedSafe' id='cards'>
 <FadeContent blur={true} duration={500} easing="ease-out" initialOpacity={0.2}>
   <div className='foreas'>
 <ProfileCard
