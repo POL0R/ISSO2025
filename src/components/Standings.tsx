@@ -1,14 +1,15 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchMatches, fetchTeams } from '../api'
+import { fetchMatches, fetchTeams, debugSports } from '../api'
 import type { Match, Team } from '../types'
 
 export default function Standings({ sport }: { sport: string }) {
   const { data: teams } = useQuery<Team[]>({ queryKey: ['teams', sport], queryFn: () => fetchTeams(sport) })
   const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', sport], queryFn: () => fetchMatches(sport) })
-  
-  // Debug: Log sport parameter
+
+  // Debug: Log sport parameter and check all sports
   console.log('Standings component - sport:', sport)
+  debugSports()
 
   const groups = useMemo((): Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> => {
     // Get group information from teams table
