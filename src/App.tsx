@@ -6,6 +6,7 @@ import ProfileCard from './components/ProfileCard'
 import FadeContent from './components/FadeContent';
 import CurvedLoop from './components/CurvedLoop';
 import Splash from './components/Splash';
+import { Analytics } from "@vercel/analytics/next"
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
