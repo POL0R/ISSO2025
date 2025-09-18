@@ -7,10 +7,20 @@ export async function fetchSports(): Promise<Sport[]> {
   return data as unknown as Sport[];
 }
 
+// Temporary fix for sport ID mapping issue
+function getCorrectSportId(sportSlug: string, fetchedSportId: string | undefined): string | undefined {
+  // Map basketball-u17-boys to the correct sport ID based on the data provided
+  if (sportSlug === 'basketball-u17-boys') {
+    return 'ea32f944-f028-415a-b90b-efe6f2990a4e';
+  }
+  return fetchedSportId;
+}
+
 export async function fetchTeams(sportSlug: string): Promise<Team[]> {
   const { data: sport } = await supabase.from('sports').select('id').eq('slug', sportSlug).maybeSingle();
-  const sportId = sport?.id as string | undefined;
-  console.log(`fetchTeams - sportSlug: ${sportSlug}, sportId: ${sportId}`);
+  const fetchedSportId = sport?.id as string | undefined;
+  const sportId = getCorrectSportId(sportSlug, fetchedSportId);
+  console.log(`fetchTeams - sportSlug: ${sportSlug}, fetchedSportId: ${fetchedSportId}, correctedSportId: ${sportId}`);
   if (!sportId) return [];
   const { data, error } = await supabase.from('teams').select('*').eq('sport_id', sportId).order('name');
   if (error) throw error;
@@ -20,8 +30,9 @@ export async function fetchTeams(sportSlug: string): Promise<Team[]> {
 
 export async function fetchMatches(sportSlug: string): Promise<Match[]> {
   const { data: sport } = await supabase.from('sports').select('id').eq('slug', sportSlug).maybeSingle();
-  const sportId = sport?.id as string | undefined;
-  console.log(`fetchMatches - sportSlug: ${sportSlug}, sportId: ${sportId}`);
+  const fetchedSportId = sport?.id as string | undefined;
+  const sportId = getCorrectSportId(sportSlug, fetchedSportId);
+  console.log(`fetchMatches - sportSlug: ${sportSlug}, fetchedSportId: ${fetchedSportId}, correctedSportId: ${sportId}`);
   if (!sportId) return [];
   const ordered = await supabase
     .from('matches')
