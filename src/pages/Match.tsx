@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMatchById, fetchTeams, finalizeMatch, updateMatchStatus } from '../api'
+import { fetchMatchById, fetchTeams, fetchTeamsBySportId, finalizeMatch, updateMatchStatus } from '../api'
 import { useAuth } from '../context/AuthContext'
 import Goals from '../components/Goals'
 
@@ -10,8 +10,12 @@ export default function MatchPage() {
   const { role } = useAuth()
   const { data: match, isLoading } = useQuery({ queryKey: ['match', id], queryFn: () => fetchMatchById(id), enabled: !!id })
 
-  const sportSlugGuess = 'football-u19'
-  const { data: teams } = useQuery({ queryKey: ['teams', sportSlugGuess], queryFn: () => fetchTeams(sportSlugGuess), enabled: !!sportSlugGuess })
+  // Get the sport from the match data
+  const { data: teams } = useQuery({ 
+    queryKey: ['teams', match?.sport_id], 
+    queryFn: () => fetchTeamsBySportId(match?.sport_id || ''), 
+    enabled: !!match?.sport_id 
+  })
 
   
 

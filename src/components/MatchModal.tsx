@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMatchById, fetchTeams, updateMatchStatus } from '../api'
+import { fetchMatchById, fetchTeams, fetchTeamsBySportId, updateMatchStatus } from '../api'
 import Goals from './Goals'
 import { useAuth } from '../context/AuthContext'
 import './MatchModal.css'
@@ -9,8 +9,14 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
   const { role } = useAuth()
   const qc = useQueryClient()
   const { data: match } = useQuery({ queryKey: ['match', id], queryFn: () => fetchMatchById(id), enabled: !!id })
-  const sportSlugGuess = 'football-u19'
-  const { data: teams } = useQuery({ queryKey: ['teams', sportSlugGuess], queryFn: () => fetchTeams(sportSlugGuess), enabled: !!sportSlugGuess })
+  
+  // Get the sport slug from the match data
+  const { data: teams } = useQuery({ 
+    queryKey: ['teams', match?.sport_id], 
+    queryFn: () => fetchTeamsBySportId(match?.sport_id || ''), 
+    enabled: !!match?.sport_id 
+  })
+  
   const homeName = teams?.find(t => t.id === match?.home_team_id)?.name ?? 'Home'
   const awayName = teams?.find(t => t.id === match?.away_team_id)?.name ?? 'Away'
 

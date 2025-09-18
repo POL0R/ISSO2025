@@ -1,15 +1,11 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchMatches, fetchTeams, debugSports } from '../api'
+import { fetchMatches, fetchTeams } from '../api'
 import type { Match, Team } from '../types'
 
 export default function Standings({ sport }: { sport: string }) {
   const { data: teams } = useQuery<Team[]>({ queryKey: ['teams', sport], queryFn: () => fetchTeams(sport) })
   const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', sport], queryFn: () => fetchMatches(sport) })
-
-  // Debug: Log sport parameter and check all sports
-  console.log('Standings component - sport:', sport)
-  debugSports()
 
   const groups = useMemo((): Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> => {
     // Get group information from teams table
@@ -19,12 +15,11 @@ export default function Standings({ sport }: { sport: string }) {
     
     // Debug: Log team data to see group assignments
     console.log('Teams data:', teams?.slice(0, 5))
-    console.log('All teams:', teams?.map(t => ({ 
+    console.log('Team group assignments:', teams?.map(t => ({ 
       id: t.id, 
       name: t.name, 
       group_name: (t as any).group_name 
     })))
-    console.log('Teams count:', teams?.length)
     
     // First, collect all teams and their groups from the teams table
     for (const team of teams ?? []) {
@@ -143,12 +138,7 @@ export default function Standings({ sport }: { sport: string }) {
     return out.sort((a, b) => a.group.localeCompare(b.group))
   }, [matches])
 
-  const teamName = (id: string) => {
-    const team = teams?.find(t => t.id === id)
-    const name = team?.name ?? id
-    console.log(`Team ID: ${id}, Found: ${!!team}, Name: ${name}`)
-    return name
-  }
+  const teamName = (id: string) => teams?.find(t => t.id === id)?.name ?? id
 
   return (
     <div style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 12, padding: 16, color: '#fff' }}>
