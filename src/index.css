@@ -294,8 +294,7 @@ cursor: pointer; }
     height: 200vh;
     min-height: 100vh;
     max-height: 100vh;
-    height: fit-content; /* Dynamic viewport height for mobile */
-    overflow: hidden;
+ /* Dynamic viewport height for mobile */
     min-height: 100dvh;
   }
 

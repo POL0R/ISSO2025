@@ -10,6 +10,7 @@ export interface Team {
   id: string;
   sport_id: string;
   name: string;
+  group_name?: string | null;
 }
 
 export type MatchStatus = string;

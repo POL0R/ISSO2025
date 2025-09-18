@@ -8,59 +8,40 @@ export default function Standings({ sport }: { sport: string }) {
   const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', sport], queryFn: () => fetchMatches(sport) })
 
   const groups = useMemo((): Array<{ group: string; rows: Array<{ team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }> }> => {
-    // First, collect all unique groups from matches
-    const groupSet = new Set<string>()
+    // Get group information from teams table
     const teamToGroup = new Map<string, string>()
+    const groupSet = new Set<string>()
     const allTeamIds = new Set<string>()
     
-    // Debug: Log match data to see what we're working with
-    console.log('Matches data:', matches?.slice(0, 3))
-    console.log('Sample match stage values:', matches?.slice(0, 3).map(m => ({ 
-      id: m.id, 
-      stage: (m as any).stage, 
-      home_team: m.home_team_id, 
-      away_team: m.away_team_id 
+    // Debug: Log team data to see group assignments
+    console.log('Teams data:', teams?.slice(0, 5))
+    console.log('Team group assignments:', teams?.map(t => ({ 
+      id: t.id, 
+      name: t.name, 
+      group_name: (t as any).group_name 
     })))
     
-    // Process all matches to determine groups and teams
+    // First, collect all teams and their groups from the teams table
+    for (const team of teams ?? []) {
+      allTeamIds.add(team.id)
+      const groupName = (team as any).group_name
+      if (groupName) {
+        teamToGroup.set(team.id, groupName)
+        groupSet.add(groupName)
+      }
+    }
+    
+    // Also collect team IDs from matches (in case some teams don't have group assignments)
     for (const m of matches ?? []) {
       allTeamIds.add(m.home_team_id)
       allTeamIds.add(m.away_team_id)
-      
-      // Try different possible group fields
-      const stage = (m as any).stage
-      const group = (m as any).group
-      const pool = (m as any).pool
-      const division = (m as any).division
-      
-      // Use the first available group field, or create groups based on team distribution
-      let groupKey = stage || group || pool || division || null
-      
-      if (!groupKey) {
-        // If no group field exists, create groups based on team distribution
-        const teamArray = Array.from(allTeamIds)
-        const teamIndex = teamArray.indexOf(m.home_team_id)
-        const groupIndex = Math.floor(teamIndex / Math.ceil(teamArray.length / 4))
-        groupKey = `Group ${String.fromCharCode(65 + groupIndex)}`
-      }
-      
-      groupSet.add(groupKey)
-      teamToGroup.set(m.home_team_id, groupKey)
-      teamToGroup.set(m.away_team_id, groupKey)
     }
     
-    console.log('Detected groups:', Array.from(groupSet))
-    console.log('Team to group mapping:', Object.fromEntries(teamToGroup))
-    
-    // If only one group found or no groups, create multiple groups by distributing teams
-    if (groupSet.size <= 1) {
+    // If no groups found in teams table, create groups by distributing teams
+    if (groupSet.size === 0) {
       const teamArray = Array.from(allTeamIds)
       const numGroups = Math.min(4, Math.max(2, Math.ceil(teamArray.length / 3))) // 2-4 groups
       const teamsPerGroup = Math.ceil(teamArray.length / numGroups)
-      
-      // Clear existing assignments
-      teamToGroup.clear()
-      groupSet.clear()
       
       teamArray.forEach((teamId, index) => {
         const groupIndex = Math.floor(index / teamsPerGroup)
@@ -70,7 +51,19 @@ export default function Standings({ sport }: { sport: string }) {
       })
       
       console.log('Created groups by team distribution:', Array.from(groupSet))
+    } else {
+      // Assign teams without group names to existing groups
+      for (const teamId of allTeamIds) {
+        if (!teamToGroup.has(teamId)) {
+          const existingGroups = Array.from(groupSet)
+          const randomGroup = existingGroups[Math.floor(Math.random() * existingGroups.length)]
+          teamToGroup.set(teamId, randomGroup)
+        }
+      }
     }
+    
+    console.log('Final groups:', Array.from(groupSet))
+    console.log('Team to group mapping:', Object.fromEntries(teamToGroup))
     
     // Initialize group maps
     const byGroup = new Map<string, Map<string, { team_id: string; played: number; won: number; drawn: number; lost: number; gf: number; ga: number; gd: number; pts: number }>>()
