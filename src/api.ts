@@ -10,15 +10,18 @@ export async function fetchSports(): Promise<Sport[]> {
 export async function fetchTeams(sportSlug: string): Promise<Team[]> {
   const { data: sport } = await supabase.from('sports').select('id').eq('slug', sportSlug).maybeSingle();
   const sportId = sport?.id as string | undefined;
+  console.log(`fetchTeams - sportSlug: ${sportSlug}, sportId: ${sportId}`);
   if (!sportId) return [];
   const { data, error } = await supabase.from('teams').select('*').eq('sport_id', sportId).order('name');
   if (error) throw error;
+  console.log(`fetchTeams - found ${data?.length || 0} teams for sport ${sportId}`);
   return data as unknown as Team[];
 }
 
 export async function fetchMatches(sportSlug: string): Promise<Match[]> {
   const { data: sport } = await supabase.from('sports').select('id').eq('slug', sportSlug).maybeSingle();
   const sportId = sport?.id as string | undefined;
+  console.log(`fetchMatches - sportSlug: ${sportSlug}, sportId: ${sportId}`);
   if (!sportId) return [];
   const ordered = await supabase
     .from('matches')
@@ -26,6 +29,7 @@ export async function fetchMatches(sportSlug: string): Promise<Match[]> {
     .eq('sport_id', sportId)
     .order('starts_at', { ascending: true });
   if (ordered.error) throw ordered.error;
+  console.log(`fetchMatches - found ${ordered.data?.length || 0} matches for sport ${sportId}`);
   return ordered.data as unknown as Match[];
 }
 
