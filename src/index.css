@@ -49,6 +49,7 @@ html, body, #root {
   overflow-y: auto; /* Allow vertical scrolling for cards */
   overflow-x: hidden; /* Prevent horizontal scrolling */
   padding: 20px 16px; /* Add top padding to prevent clipping */
+  transform: translateY(50%); /* Move container down by 50% of its height */
 }
 
 .foreas {
@@ -264,6 +265,7 @@ cursor: pointer; }
     overflow-y: auto;
     overflow-x: hidden;
     padding: 20px 16px; /* Add top padding to prevent clipping */
+    transform: translateY(-50%); /* Move container down by 50% of its height */
   }
 
   .textContainerCircluar {
@@ -316,6 +318,7 @@ cursor: pointer; }
     overflow-y: auto; /* Allow vertical scrolling for cards */
     overflow-x: hidden; /* Prevent horizontal scrolling */
     padding: 20px 12px; /* Add top padding to prevent clipping */
+    transform: translateY(-50%); /* Move container down by 50% of its height */
   }
 
   .textContainerCircluar {
