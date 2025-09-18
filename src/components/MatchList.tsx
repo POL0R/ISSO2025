@@ -15,6 +15,8 @@ export default function MatchList({ sport, teamFilter = '', dateFilter = '', sel
   const teamById = useMemo(() => {
     const map = new Map<string, Team>();
     (teams ?? []).forEach(t => map.set(t.id, t));
+    console.log('MatchList - Teams data:', teams)
+    console.log('MatchList - TeamById map:', Object.fromEntries(map))
     return map;
   }, [teams]);
 
@@ -63,8 +65,19 @@ export default function MatchList({ sport, teamFilter = '', dateFilter = '', sel
       ) : (
         <>
           {visible.map((m: Match) => {
-            const home = teamById.get(m.home_team_id)?.name ?? 'Home';
-            const away = teamById.get(m.away_team_id)?.name ?? 'Away';
+            const homeTeam = teamById.get(m.home_team_id);
+            const awayTeam = teamById.get(m.away_team_id);
+            const home = homeTeam?.name ?? 'Home';
+            const away = awayTeam?.name ?? 'Away';
+            
+            console.log(`Match ${m.id}:`, {
+              home_team_id: m.home_team_id,
+              home_team_found: !!homeTeam,
+              home_team_name: home,
+              away_team_id: m.away_team_id,
+              away_team_found: !!awayTeam,
+              away_team_name: away
+            });
             return (
               <div key={m.id}>
                 <div
