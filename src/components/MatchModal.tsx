@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMatchById, fetchTeams, fetchTeamsBySportId, updateMatchStatus } from '../api'
+import { fetchMatchById, fetchTeamsBySportId, updateMatchStatus, fetchSportById } from '../api'
 import Goals from './Goals'
 import { useAuth } from '../context/AuthContext'
 import './MatchModal.css'
@@ -16,11 +16,18 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
     queryFn: () => fetchTeamsBySportId(match?.sport_id || ''), 
     enabled: !!match?.sport_id 
   })
+  const { data: sport } = useQuery({
+    queryKey: ['sport', match?.sport_id],
+    queryFn: () => fetchSportById(match?.sport_id || ''),
+    enabled: !!match?.sport_id
+  })
   
   const homeName = teams?.find(t => t.id === match?.home_team_id)?.name ?? 'Home'
   const awayName = teams?.find(t => t.id === match?.away_team_id)?.name ?? 'Away'
 
   const [tab, setTab] = useState<'info' | 'admin'>('info')
+
+  const isBasketball = ((sport?.slug || sport?.name || '') as string).toLowerCase().includes('basketball')
 
   // mutations handled inline in form/button
   // status note removed
@@ -49,7 +56,7 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
               <div className="sectionTitle">Match Details</div>
               <div className="divider"></div>
               <dl className="kv">
-                <dt>{String(match.sport_id).includes('basketball') ? 'Tip-off' : 'Kickoff'}</dt>
+                <dt>{isBasketball ? 'Tip-off' : 'Kickoff'}</dt>
                 <dd>{new Date(match.starts_at).toLocaleString()}</dd>
                 <dt>Venue</dt>
                 <dd>{match.venue || 'TBD'}</dd>
@@ -57,7 +64,7 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                 <dd>{match.status_note || match.status}</dd>
               </dl>
               <div className="divider"></div>
-              {String(match.sport_id).includes('basketball') ? (
+              {isBasketball ? (
                 <>
                   <div className="sectionTitle">Score</div>
                   <div style={{ 
@@ -127,6 +134,33 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                           Update Score
                         </button>
                       </form>
+                      <div className="divider" style={{ marginTop: 16 }}></div>
+                      <div className="sectionTitle">Highest Scorer (adds +1 point)</div>
+                      <form
+                        onSubmit={e => {
+                          e.preventDefault()
+                          const form = e.currentTarget as HTMLFormElement
+                          const player = (form.elements.namedItem('player') as HTMLInputElement).value.trim()
+                          const team = (form.elements.namedItem('team') as HTMLSelectElement).value
+                          if (!player) { alert('Enter player name'); return }
+                          ;(async () => {
+                            const { addBasketballHighestScorer } = await import('../api')
+                            await addBasketballHighestScorer({ matchId: match.id, teamId: team, playerName: player })
+                            // Invalidate relevant caches
+                            qc.invalidateQueries({ queryKey: ['topscorers'] })
+                            alert('Highest scorer saved (+1)')
+                            form.reset()
+                          })()
+                        }}
+                        style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}
+                      >
+                        <input name="player" placeholder="Player name" className="input" />
+                        <select name="team" className="input">
+                          <option value={match.home_team_id}>{homeName}</option>
+                          <option value={match.away_team_id}>{awayName}</option>
+                        </select>
+                        <button type="submit" className="btn">Save</button>
+                      </form>
                     </>
                   )}
                 </>
@@ -140,7 +174,7 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
           )}
           {tab === 'admin' && role === 'admin' && (
             <>
-              {String(match.sport_id).includes('basketball') ? (
+              {isBasketball ? (
                 <div className="section">
                   <div className="sectionTitle">Basketball Match Controls</div>
                   <div className="divider"></div>

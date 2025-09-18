@@ -59,25 +59,47 @@ export async function fetchGoals(matchId: string) {
 }
 
 export async function fetchTopScorers(sportSlug: string) {
-  const { data: sport } = await supabase.from('sports').select('id').eq('slug', sportSlug).single();
-  const sportId = sport?.id as string;
+  const { data: sport } = await supabase.from('sports').select('id, slug, name').eq('slug', sportSlug).single();
+  const sportId = (sport?.id as string) || '';
+  const slugOrName = String((sport as any)?.slug || (sport as any)?.name || '').toLowerCase();
   const { data: matchesData } = await supabase.from('matches').select('id').eq('sport_id', sportId);
   const matchIds = (matchesData ?? []).map(m => m.id);
   if (matchIds.length === 0) return [] as Array<{ player_name: string; goals: number; team_id: string }>;
-  const { data, error } = await supabase
-    .from('football_goals')
-    .select('player_name, team_id, own_goal')
-    .in('match_id', matchIds)
-    .eq('own_goal', false);
-  if (error) throw error;
-  const counter = new Map<string, { player_name: string; team_id: string; goals: number }>();
-  for (const g of data as any[]) {
-    const key = g.team_id + '|' + g.player_name;
-    const prev = counter.get(key) || { player_name: g.player_name, team_id: g.team_id, goals: 0 };
-    prev.goals += 1;
-    counter.set(key, prev);
+
+  const isBasketball = slugOrName.includes('basketball');
+
+  if (!isBasketball) {
+    const { data, error } = await supabase
+      .from('football_goals')
+      .select('player_name, team_id, own_goal')
+      .in('match_id', matchIds)
+      .eq('own_goal', false);
+    if (error) throw error;
+    const counter = new Map<string, { player_name: string; team_id: string; goals: number }>();
+    for (const g of (data as any[]) || []) {
+      const key = g.team_id + '|' + g.player_name;
+      const prev = counter.get(key) || { player_name: g.player_name, team_id: g.team_id, goals: 0 };
+      prev.goals += 1;
+      counter.set(key, prev);
+    }
+    return Array.from(counter.values()).sort((a, b) => b.goals - a.goals).slice(0, 20);
+  } else {
+    // Basketball: aggregate from basketball_scorers where each entry counts as +1 point (or use points column if present)
+    const { data, error } = await supabase
+      .from('basketball_scorers')
+      .select('player_name, team_id, points')
+      .in('match_id', matchIds);
+    if (error) throw error;
+    const counter = new Map<string, { player_name: string; team_id: string; goals: number }>();
+    for (const s of (data as any[]) || []) {
+      const key = s.team_id + '|' + s.player_name;
+      const prev = counter.get(key) || { player_name: s.player_name, team_id: s.team_id, goals: 0 };
+      const add = typeof s.points === 'number' && !Number.isNaN(s.points) ? s.points : 1;
+      prev.goals += add;
+      counter.set(key, prev);
+    }
+    return Array.from(counter.values()).sort((a, b) => b.goals - a.goals).slice(0, 20);
   }
-  return Array.from(counter.values()).sort((a, b) => b.goals - a.goals).slice(0, 20);
 }
 
 export async function updateMatchNote(matchId: string, note: string) {
@@ -142,6 +164,13 @@ export async function addTeamPlayer(teamId: string, name: string, jerseyNumber: 
   const { error } = await supabase
     .from('team_players')
     .insert({ team_id: teamId, name, jersey_number: jerseyNumber });
+  if (error) throw error;
+}
+
+export async function addBasketballHighestScorer(params: { matchId: string; teamId: string; playerName: string }) {
+  const { error } = await supabase
+    .from('basketball_scorers')
+    .insert({ match_id: params.matchId, team_id: params.teamId, player_name: params.playerName, points: 1 });
   if (error) throw error;
 }
 

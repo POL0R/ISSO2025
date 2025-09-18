@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMatchById, fetchTeamsBySportId, finalizeMatch, updateMatchStatus, setBasketballScore } from '../api'
+import { fetchMatchById, fetchTeamsBySportId, finalizeMatch, updateMatchStatus, setBasketballScore, fetchSportById } from '../api'
 import { useAuth } from '../context/AuthContext'
 import Goals from '../components/Goals'
 
@@ -16,6 +16,11 @@ export default function MatchPage() {
     queryFn: () => fetchTeamsBySportId(match?.sport_id || ''), 
     enabled: !!match?.sport_id 
   })
+  const { data: sport } = useQuery({
+    queryKey: ['sport', match?.sport_id],
+    queryFn: () => fetchSportById(match?.sport_id || ''),
+    enabled: !!match?.sport_id
+  })
 
   
 
@@ -28,7 +33,7 @@ export default function MatchPage() {
   const awayName = teams?.find(t => t.id === match.away_team_id)?.name ?? 'Away'
 
   const allowEdit = role === 'admin'
-  const isBasketball = String(match.sport_id).includes('basketball')
+  const isBasketball = ((sport?.slug || sport?.name || '') as string).toLowerCase().includes('basketball')
 
   return (
     <div className="pageLight" style={{ marginTop: '12svh' }}>

@@ -30,16 +30,22 @@ html, body, #root {
 .playedSafe {
   display: flex;
   width: 100%;
-  min-height: 100svh;
   justify-content: center;
   align-items: flex-start;
-  margin-top: 16svh;
   gap: 5vw;
   z-index: 20;
+  position: fixed;
+  top: 16vh;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 20vh;
 }
 
 .foreas {
-  position: relative;
+
   z-index: 1100;
 }
 
@@ -230,8 +236,9 @@ cursor: pointer; }
 
 @media (max-width: 1024px) {
   .playedSafe {
-    margin-top: 14svh;
+    top: 14svh;
     gap: 4vw;
+    padding-top: 2vh;
   }
 }
 
@@ -245,7 +252,8 @@ cursor: pointer; }
     flex-direction: column;
     align-items: center;
     gap: 6svh;
-    margin-top: 12svh;
+    top: 12svh;
+    padding-top: 2vh;
   }
 
   .textContainerCircluar {
@@ -299,8 +307,9 @@ cursor: pointer; }
   }
 
   .playedSafe {
-    margin-top: 10svh;
+    top: 10svh;
     gap: 5svh;
+    padding-top: 2vh;
   }
 
   .textContainerCircluar {
