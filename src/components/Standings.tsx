@@ -13,21 +13,54 @@ export default function Standings({ sport }: { sport: string }) {
     const teamToGroup = new Map<string, string>()
     const allTeamIds = new Set<string>()
     
+    // Debug: Log match data to see what we're working with
+    console.log('Matches data:', matches?.slice(0, 3))
+    console.log('Sample match stage values:', matches?.slice(0, 3).map(m => ({ 
+      id: m.id, 
+      stage: (m as any).stage, 
+      home_team: m.home_team_id, 
+      away_team: m.away_team_id 
+    })))
+    
     // Process all matches to determine groups and teams
     for (const m of matches ?? []) {
       allTeamIds.add(m.home_team_id)
       allTeamIds.add(m.away_team_id)
       
-      const groupKey = ((m as any).stage as string | undefined) || 'Group A'
+      // Try different possible group fields
+      const stage = (m as any).stage
+      const group = (m as any).group
+      const pool = (m as any).pool
+      const division = (m as any).division
+      
+      // Use the first available group field, or create groups based on team distribution
+      let groupKey = stage || group || pool || division || null
+      
+      if (!groupKey) {
+        // If no group field exists, create groups based on team distribution
+        const teamArray = Array.from(allTeamIds)
+        const teamIndex = teamArray.indexOf(m.home_team_id)
+        const groupIndex = Math.floor(teamIndex / Math.ceil(teamArray.length / 4))
+        groupKey = `Group ${String.fromCharCode(65 + groupIndex)}`
+      }
+      
       groupSet.add(groupKey)
       teamToGroup.set(m.home_team_id, groupKey)
       teamToGroup.set(m.away_team_id, groupKey)
     }
     
-    // If no groups found in matches, create default groups
-    if (groupSet.size === 0) {
+    console.log('Detected groups:', Array.from(groupSet))
+    console.log('Team to group mapping:', Object.fromEntries(teamToGroup))
+    
+    // If only one group found or no groups, create multiple groups by distributing teams
+    if (groupSet.size <= 1) {
       const teamArray = Array.from(allTeamIds)
-      const teamsPerGroup = Math.ceil(teamArray.length / 4) // Distribute into 4 groups
+      const numGroups = Math.min(4, Math.max(2, Math.ceil(teamArray.length / 3))) // 2-4 groups
+      const teamsPerGroup = Math.ceil(teamArray.length / numGroups)
+      
+      // Clear existing assignments
+      teamToGroup.clear()
+      groupSet.clear()
       
       teamArray.forEach((teamId, index) => {
         const groupIndex = Math.floor(index / teamsPerGroup)
@@ -35,6 +68,8 @@ export default function Standings({ sport }: { sport: string }) {
         teamToGroup.set(teamId, groupKey)
         groupSet.add(groupKey)
       })
+      
+      console.log('Created groups by team distribution:', Array.from(groupSet))
     }
     
     // Initialize group maps
