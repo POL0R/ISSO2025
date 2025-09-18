@@ -89,11 +89,6 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                           const form = e.currentTarget as HTMLFormElement
                           const homeScore = Number((form.elements.namedItem('home') as HTMLInputElement).value)
                           const awayScore = Number((form.elements.namedItem('away') as HTMLInputElement).value)
-                          const topScorer = (form.elements.namedItem('top') as HTMLInputElement).value
-                          
-                          if (topScorer.trim()) {
-                            updateMatchStatus(match.id, `Started | Top: ${topScorer}`).then(() => qc.invalidateQueries({ queryKey: ['match', id] }))
-                          }
                           
                           ;(async () => { 
                             await (await import('../api')).setBasketballScore(match.id, homeScore, awayScore)
@@ -128,12 +123,6 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
                             />
                           </div>
                         </div>
-                        <input 
-                          name="top" 
-                          placeholder="Highest scorer (optional)" 
-                          className="input" 
-                          style={{ textAlign: 'center' }}
-                        />
                         <button className="btn" type="submit" style={{ marginTop: 8 }}>
                           Update Score
                         </button>
