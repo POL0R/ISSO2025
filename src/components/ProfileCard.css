@@ -474,7 +474,7 @@ z-index: 10;
 
 @media (max-width: 480px) {
   .pc-card {
-    height: 60svh;
+    height: 60vh;
     max-height: 380px;
   }
 

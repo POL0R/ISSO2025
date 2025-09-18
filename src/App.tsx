@@ -39,7 +39,7 @@ function App() {
 />
 </div>
 
-<div className='playedSafe' id='cards'>
+<div className='playedSafe' id='cards' style={{ paddingTop: '4vh' }}>
 <FadeContent blur={true} duration={500} easing="ease-out" initialOpacity={0.2}>
   <div className='foreas'>
 <ProfileCard

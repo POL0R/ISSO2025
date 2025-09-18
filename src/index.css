@@ -41,11 +41,11 @@ html, body, #root {
   bottom: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: 20vh;
+  padding-top: 4vh;
 }
 
 .foreas {
-
+  position: relative;
   z-index: 1100;
 }
 
@@ -309,7 +309,8 @@ cursor: pointer; }
   .playedSafe {
     top: 10svh;
     gap: 5svh;
-    padding-top: 2vh;
+    padding-top: 20vh;
+    
   }
 
   .textContainerCircluar {
