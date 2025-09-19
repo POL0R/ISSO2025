@@ -18,6 +18,17 @@ export default function MatchList({ sport, teamFilter = '', dateFilter = '', sel
     return map;
   }, [teams]);
 
+  const logoSrc = (teamId: string): string => {
+    const t = teamById.get(teamId)
+    const sc = ((t as any)?.short_code as string | undefined) || ''
+    if (sc) {
+      const mapped = ['IP', 'IH', 'IBLR'].includes(sc) ? 'IP' : sc
+      return `/teams/${mapped}.png`
+    }
+    const safe = (t?.name || teamId).toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    return `/teams/${safe}.png`
+  }
+
   useAuth();
 
   // finalize action handled in modal admin tab
@@ -99,9 +110,9 @@ export default function MatchList({ sport, teamFilter = '', dateFilter = '', sel
                   })()}</div>
                 </div>
                   <div className="scorecard-body">
-                  <div className="team"><div className="logo"><img alt={home} loading="lazy" src={`/logos/${m.home_team_id}.png`} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${m.home_team_id}` }} /></div><span className="team-name">{home}</span></div>
+                  <div className="team"><div className="logo"><img alt={home} loading="lazy" src={logoSrc(m.home_team_id)} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${m.home_team_id}` }} /></div><span className="team-name">{home}</span></div>
                     <div className="score">{m.home_score} - {m.away_score}</div>
-                  <div className="team" style={{ justifyItems: 'center' }}><div className="logo"><img alt={away} loading="lazy" src={`/logos/${m.away_team_id}.png`} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${m.away_team_id}` }} /></div><span className="team-name">{away}</span></div>
+                  <div className="team" style={{ justifyItems: 'center' }}><div className="logo"><img alt={away} loading="lazy" src={logoSrc(m.away_team_id)} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${m.away_team_id}` }} /></div><span className="team-name">{away}</span></div>
                   </div>
                 <div className="scorecard-footer">
                   <div></div>

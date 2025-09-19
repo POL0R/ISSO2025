@@ -10,7 +10,7 @@ export default function TeamScroller({ teams, selectedTeamId, onSelect }: { team
       </button>
       {teams.map(t => (
         <button key={t.id} className={`team-chip${selectedTeamId === t.id ? ' active' : ''}`} onClick={() => onSelect(t.id)}>
-          <div className="avatar"><img alt={t.name} loading="lazy" src={`/logos/${t.id}.png`} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${t.id}` }} /></div>
+          <div className="avatar"><img alt={t.name} loading="lazy" src={(t as any).short_code ? `/teams/${(['IP','IH','IBLR'].includes(((t as any).short_code as string)) ? 'IP' : (t as any).short_code)}.png` : `/teams/${t.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.png`} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${t.id}` }} /></div>
           <div className="label">{t.name}</div>
         </button>
       ))}

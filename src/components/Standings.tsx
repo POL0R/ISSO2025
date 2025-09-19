@@ -88,7 +88,19 @@ export default function Standings({ sport }: { sport: string }) {
     return out.sort((a, b) => a.group.localeCompare(b.group))
   }, [matches, teams])
 
-  const teamName = (id: string) => teams?.find(t => t.id === id)?.name ?? id
+  const teamById = new Map<string, Team>();
+  (teams ?? []).forEach(t => teamById.set(t.id, t));
+  const teamName = (id: string) => teamById.get(id)?.name ?? id
+  const teamLogo = (id: string) => {
+    const t = teamById.get(id)
+    const sc = ((t as any)?.short_code as string | undefined) || ''
+    if (sc) {
+      const mapped = ['IP', 'IH', 'IBLR'].includes(sc) ? 'IP' : sc
+      return `/teams/${mapped}.png`
+    }
+    const safe = (t?.name || id).toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    return `/teams/${safe}.png`
+  }
 
   const getForm = (teamId: string): Array<'W' | 'D' | 'L'> => {
     const finals = (matches ?? []).filter(m => {
@@ -147,7 +159,7 @@ export default function Standings({ sport }: { sport: string }) {
                   <div key={row.team_id} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 12, alignItems: 'center', color: '#fff', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <div style={{ fontWeight: 600, opacity: 0.9 }}>{index + 1}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <img alt={teamName(row.team_id)} loading="lazy" src={`/logos/${row.team_id}.png`} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${row.team_id}` }} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)' }} />
+                      <img alt={teamName(row.team_id)} loading="lazy" src={teamLogo(row.team_id)} onError={e => { (e.currentTarget as HTMLImageElement).src = `https://api.dicebear.com/7.x/identicon/svg?seed=${row.team_id}` }} style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)' }} />
                       <span style={{ fontWeight: 600 }}>{teamName(row.team_id)}</span>
                     </div>
                     <div style={{ textAlign: 'center', opacity: 0.85 }}>{row.played}</div>
